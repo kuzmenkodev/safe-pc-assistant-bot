@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import platform
-import shutil
-import socket
+import subprocess
 import time
 from dataclasses import dataclass
 
@@ -10,47 +8,72 @@ import psutil
 
 
 @dataclass(slots=True)
-class SystemSnapshot:
-    hostname: str
-    os_name: str
-    uptime_hours: float
+class HealthStatus:
     cpu_percent: float
-    ram_percent: float
-    free_ram_gb: float
+    memory_percent: float
     disk_percent: float
-    local_ip: str
 
 
-def get_local_ip() -> str:
-    try:
-        return socket.gethostbyname(socket.gethostname())
-    except OSError:
-        return 'unknown'
+@dataclass(slots=True)
+class ProcessEntry:
+    pid: int
+    name: str
+    cpu_percent: float
+    memory_mb: float
 
 
-def get_system_snapshot() -> SystemSnapshot:
-    vm = psutil.virtual_memory()
-    disk = shutil.disk_usage('/')
-    uptime_hours = (time.time() - psutil.boot_time()) / 3600
-    return SystemSnapshot(
-        hostname=platform.node(),
-        os_name=f'{platform.system()} {platform.release()}',
-        uptime_hours=round(uptime_hours, 2),
-        cpu_percent=psutil.cpu_percent(interval=0.5),
-        ram_percent=vm.percent,
-        free_ram_gb=round(vm.available / (1024 ** 3), 2),
-        disk_percent=round((disk.used / disk.total) * 100, 2),
-        local_ip=get_local_ip(),
+def get_health_status() -> HealthStatus:
+    cpu = psutil.cpu_percent(interval=0.5)
+    memory = psutil.virtual_memory().percent
+    disk = psutil.disk_usage("C:\\").percent
+    return HealthStatus(
+        cpu_percent=cpu,
+        memory_percent=memory,
+        disk_percent=disk,
     )
 
 
-def top_processes(limit: int = 10) -> list[tuple[str, float, float]]:
-    rows: list[tuple[str, float, float]] = []
-    for proc in psutil.process_iter(['name', 'cpu_percent', 'memory_percent']):
+def get_heavy_processes(limit: int = 5) -> list[ProcessEntry]:
+    processes = list(psutil.process_iter(["pid", "name"]))
+    for proc in processes:
         try:
-            info = proc.info
-            rows.append((info.get('name') or 'unknown', float(info.get('cpu_percent') or 0.0), float(info.get('memory_percent') or 0.0)))
+            proc.cpu_percent(interval=None)
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
-    rows.sort(key=lambda item: (item[1], item[2]), reverse=True)
-    return rows[:limit]
+
+    time.sleep(0.3)
+
+    result: list[ProcessEntry] = []
+    for proc in processes:
+        try:
+            cpu = proc.cpu_percent(interval=None)
+            memory_mb = proc.memory_info().rss / 1024 / 1024
+            result.append(
+                ProcessEntry(
+                    pid=proc.pid,
+                    name=proc.info.get("name") or "unknown",
+                    cpu_percent=cpu,
+                    memory_mb=memory_mb,
+                )
+            )
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+
+    result.sort(key=lambda x: (x.cpu_percent, x.memory_mb), reverse=True)
+    return result[:limit]
+
+
+def ping_host(host: str = "8.8.8.8") -> tuple[bool, str]:
+    try:
+        completed = subprocess.run(
+            ["ping", "-n", "1", host],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            shell=False,
+        )
+        if completed.returncode == 0:
+            return True, f"Ping OK: {host}"
+        return False, f"Ping failed: {host}"
+    except Exception as exc:
+        return False, f"Ping error: {exc}"
