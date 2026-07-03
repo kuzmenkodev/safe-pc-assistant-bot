@@ -18,42 +18,50 @@ from handlers.media import router as media_router
 from handlers.power import router as power_router
 from handlers.scenarios import router as scenarios_router
 from handlers.system import router as system_router
+from keyboards.main import main_menu_keyboard
 from services.logging_service import setup_logging
 
 
-async def set_main_commands(bot: Bot) -> None:
-    await bot.set_my_commands(
-        [
-            BotCommand(command="start", description="Открыть главное меню"),
-            BotCommand(command="help", description="Показать команды"),
-            BotCommand(command="status", description="Статус ПК"),
-            BotCommand(command="processes", description="Топ процессов"),
-            BotCommand(command="gaming", description="Игровой статус"),
-            BotCommand(command="open", description="Открыть приложение"),
-            BotCommand(command="runningapps", description="Запущенные приложения"),
-            BotCommand(command="files", description="Разрешённые файлы"),
-            BotCommand(command="power", description="Питание"),
-            BotCommand(command="scenarios", description="Сценарии"),
-            BotCommand(command="autostartinfo", description="Автозапуск Windows"),
-        ]
-    )
+async def send_startup_message(bot: Bot, config: AppConfig) -> None:
+    target_chat_id = None
+
+    if config.authorized_chat_ids:
+        target_chat_id = config.authorized_chat_ids[0]
+    elif config.authorized_user_ids:
+        target_chat_id = config.authorized_user_ids[0]
+
+    if target_chat_id is None:
+        logging.warning("Startup message skipped: no authorized chat/user id configured")
+        return
+
+    text = "<b>✅ Бот онлайн</b>\nГотов к работе."
+
+    try:
+        await bot.send_message(
+            target_chat_id,
+            text,
+            reply_markup=main_menu_keyboard(),
+        )
+    except Exception as exc:
+        logging.exception("Failed to send startup message: %s", exc)
 
 
 async def main() -> None:
     config = AppConfig.from_env()
-    config.data_dir.mkdir(parents=True, exist_ok=True)
-    config.log_dir.mkdir(parents=True, exist_ok=True)
 
     setup_logging(config.log_dir)
+    logging.info("Starting bot")
+
+    parse_mode = ParseMode.HTML
+    if config.default_parse_mode.upper() == "MARKDOWN":
+        parse_mode = ParseMode.MARKDOWN_V2
 
     bot = Bot(
         token=config.bot_token,
-        default=DefaultBotProperties(
-            parse_mode=ParseMode.HTML if config.default_parse_mode.upper() == "HTML" else None
-        ),
+        default=DefaultBotProperties(parse_mode=parse_mode),
     )
-
     dp = Dispatcher()
+
     dp["config"] = config
 
     dp.include_router(common_router)
@@ -66,11 +74,30 @@ async def main() -> None:
     dp.include_router(scenarios_router)
     dp.include_router(callbacks_router)
 
-    await set_main_commands(bot)
+    await bot.set_my_commands(
+        [
+            BotCommand(command="start", description="Открыть главное меню"),
+            BotCommand(command="help", description="Информация о боте"),
+            BotCommand(command="scenarios", description="Готовые действия"),
+            BotCommand(command="power", description="Питание"),
+        ]
+    )
 
-    logging.info("Бот запущен")
-    await dp.start_polling(bot)
+    if config.alerts_enabled:
+        await send_startup_message(bot, config)
+
+    try:
+        await dp.start_polling(
+            bot,
+            allowed_updates=dp.resolve_used_update_types(),
+        )
+    finally:
+        await bot.session.close()
+        logging.info("Bot session closed")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nБот остановлен вручную.")

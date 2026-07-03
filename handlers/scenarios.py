@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from html import escape
+
 from aiogram import Router
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
@@ -19,14 +21,14 @@ async def cmd_scenarios(message: Message, config: AppConfig) -> None:
     scenarios = load_scenarios(config.data_dir)
 
     if not scenarios:
-        await message.answer("🚀 Сценарии\n\nСписок пуст.")
+        await message.answer("<b>🚀 Сценарии</b>\n\nСписок пуст.")
         return
 
-    text = "🚀 Сценарии\n\n" + "\n".join(
-        f"• {key} — {scenario.description}"
+    text = "<b>🚀 Сценарии</b>\n\n" + "\n".join(
+        f"• <code>{escape(key)}</code> — {escape(scenario.description)}"
         for key, scenario in scenarios.items()
     )
-    text += "\n\nЗапуск: /scenario <name>"
+    text += "\n\nЗапуск: <code>/scenario &lt;имя&gt;</code>"
 
     await message.answer(text)
 
@@ -43,7 +45,9 @@ async def cmd_scenario(
     scenario_key = (command.args or "").strip()
 
     if not scenario_key:
-        await message.answer("Использование: /scenario <name>")
+        await message.answer(
+            "<b>🚀 Сценарии</b>\n\nИспользование: <code>/scenario &lt;имя&gt;</code>"
+        )
         return
 
     lines = run_scenario(config.data_dir, scenario_key)

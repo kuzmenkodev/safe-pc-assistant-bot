@@ -5,7 +5,13 @@ from pathlib import Path
 from typing import Any
 
 from services.apps_service import open_allowed_app
-from services.system_service import get_health_status, get_heavy_processes, ping_host
+from services.system_service import (
+    get_health_status,
+    get_heavy_processes,
+    mute_volume,
+    ping_host,
+    set_volume,
+)
 from utils.yaml_loader import load_yaml
 
 
@@ -37,9 +43,10 @@ def run_scenario(data_dir: Path, scenario_key: str) -> list[str]:
     scenario = scenarios.get(scenario_key)
 
     if not scenario:
-        return [f"❌ Scenario not found: {scenario_key}"]
+        return ["❌ Сценарий не найден."]
 
-    results: list[str] = [f"🚀 Сценарий: {scenario.key}"]
+    title = scenario.description.strip() or scenario.key
+    results: list[str] = [f"🚀 <b>{title}</b>"]
 
     for index, step in enumerate(scenario.steps, start=1):
         step_type = step.get("type")
@@ -68,21 +75,29 @@ def run_scenario(data_dir: Path, scenario_key: str) -> list[str]:
             elif step_type == "show_heavy_apps":
                 heavy = get_heavy_processes(limit=5)
                 if not heavy:
-                    results.append(f"{index}. ⚠️ Heavy apps not found.")
+                    results.append(f"{index}. ⚠️ Ничего тяжёлого не найдено.")
                 else:
                     lines = [
-                        f"{proc.name} (PID {proc.pid}) — CPU {proc.cpu_percent:.1f}% | RAM {proc.memory_mb:.1f} MB"
+                        f"• {proc.name} (PID {proc.pid}) — CPU {proc.cpu_percent:.1f}% | RAM {proc.memory_mb:.1f} MB"
                         for proc in heavy
                     ]
-                    results.append(f"{index}. ✅ Heavy apps:\n" + "\n".join(lines))
+                    results.append(f"{index}. ✅ Топ приложений:\n" + "\n".join(lines))
 
             elif step_type == "set_volume":
-                results.append(f"{index}. ⚠️ set_volume: not implemented yet")
+                level = int(step.get("level", 50))
+                ok, message = set_volume(level)
+                prefix = "✅" if ok else "❌"
+                results.append(f"{index}. {prefix} {message}")
+
+            elif step_type == "mute_volume":
+                ok, message = mute_volume()
+                prefix = "✅" if ok else "❌"
+                results.append(f"{index}. {prefix} {message}")
 
             else:
-                results.append(f"{index}. ❌ Unknown step type: {step_type}")
+                results.append(f"{index}. ❌ Неизвестное действие.")
 
         except Exception as exc:
-            results.append(f"{index}. ❌ Step error ({step_type}): {exc}")
+            results.append(f"{index}. ❌ Не удалось выполнить шаг: {exc}")
 
     return results

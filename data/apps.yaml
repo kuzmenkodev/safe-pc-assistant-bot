@@ -1,63 +1,63 @@
 apps:
   steam:
-    name: 'Steam'
-    path: 'C:/Program Files (x86)/Steam/steam.exe'
+    name: "Steam"
+    path: "C:/Program Files (x86)/Steam/steam.exe"
     process_names:
-      - 'steam.exe'
+      - "steam.exe"
 
   discord:
-    name: 'Discord'
-    path: 'C:/Users/offku/AppData/Local/Discord/Update.exe'
+    name: "Discord"
+    path: "C:/Users/offku/AppData/Local/Discord/Update.exe"
     args:
-      - '--processStart'
-      - 'Discord.exe'
+      - "--processStart"
+      - "Discord.exe"
     process_names:
-      - 'Discord.exe'
+      - "Discord.exe"
 
   chrome:
-    name: 'Google Chrome'
-    path: 'C:/Program Files/Google/Chrome/Application/chrome.exe'
+    name: "Google Chrome"
+    path: "C:/Program Files/Google/Chrome/Application/chrome.exe"
     process_names:
-      - 'chrome.exe'
+      - "chrome.exe"
 
   telegram:
-    name: 'Telegram'
-    path: 'C:/Users/offku/AppData/Roaming/Telegram Desktop/Telegram.exe'
+    name: "Telegram"
+    path: "C:/Users/offku/AppData/Roaming/Telegram Desktop/Telegram.exe"
     process_names:
-      - 'Telegram.exe'
+      - "Telegram.exe"
 
   spotify:
-    name: 'Spotify'
-    path: 'C:/Users/offku/AppData/Roaming/Spotify/Spotify.exe'
+    name: "Spotify"
+    path: "C:/Users/offku/AppData/Roaming/Spotify/Spotify.exe"
     process_names:
-      - 'Spotify.exe'
+      - "Spotify.exe"
 
   obs:
-    name: 'OBS Studio'
-    path: 'C:/Program Files/obs-studio/bin/64bit/obs64.exe'
+    name: "OBS Studio"
+    path: "C:/Program Files/obs-studio/bin/64bit/obs64.exe"
     process_names:
-      - 'obs64.exe'
+      - "obs64.exe"
 
   riot:
-    name: 'Riot Client'
-    path: 'C:/Riot Games/Riot Client/Riot Client Services.exe'
+    name: "Riot Client"
+    path: "C:/Riot Games/Riot Client/Riot Client Services.exe"
     process_names:
-      - 'RiotClientServices.exe'
+      - "RiotClientServices.exe"
 
   explorer:
-    name: 'Explorer'
-    path: 'C:/Windows/explorer.exe'
+    name: "Explorer"
+    path: "C:/Windows/explorer.exe"
     process_names:
-      - 'explorer.exe'
+      - "explorer.exe"
 
   notepad:
-    name: 'Notepad'
-    path: 'C:/Windows/System32/notepad.exe'
+    name: "Notepad"
+    path: "C:/Windows/System32/notepad.exe"
     process_names:
-      - 'notepad.exe'
+      - "notepad.exe"
 
   taskmgr:
-    name: 'Task Manager'
-    path: 'C:/Windows/System32/Taskmgr.exe'
+    name: "Task Manager"
+    path: "C:/Windows/System32/Taskmgr.exe"
     process_names:
-      - 'Taskmgr.exe'
+      - "Taskmgr.exe"

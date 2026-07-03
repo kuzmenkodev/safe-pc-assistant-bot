@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from html import escape
+
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -19,10 +21,14 @@ async def cmd_files(message: Message, config: AppConfig) -> None:
     items = list_allowed_files(config.data_dir)
 
     if not items:
-        await message.answer("<b>📁 Разрешённые файлы</b>\n\nСписок пуст.")
+        await message.answer("<b>📁 Файлы</b>\n\nСписок пуст.")
         return
 
-    text = "<b>📁 Разрешённые файлы</b>\n\n" + "\n".join(
-        f"• <code>{item}</code>" for item in items
+    text = "<b>📁 Файлы</b>\n\n" + "\n".join(
+        f"• <code>{escape(item)}</code>" for item in items[:20]
     )
+
+    if len(items) > 20:
+        text += f"\n\nПоказано: 20 из {len(items)}"
+
     await message.answer(text)

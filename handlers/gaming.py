@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+from html import escape
 
 from aiogram import Router
 from aiogram.filters import Command
@@ -13,7 +14,7 @@ from services.system_service import get_system_snapshot
 
 router = Router()
 
-ALLOWED_CLOSE = {
+ALLOWED_CLOSE: dict[str, str] = {
     "steam": "steam.exe",
     "discord": "discord.exe",
     "chrome": "chrome.exe",
@@ -29,16 +30,16 @@ async def cmd_gaming(message: Message, config: AppConfig) -> None:
     gaming = get_gaming_snapshot(config.data_dir)
     system = get_system_snapshot()
 
+    detected = gaming.detected_game or "не обнаружена"
     active = ", ".join(gaming.active_items) if gaming.active_items else "ничего не найдено"
-    detected = gaming.detected_game or "не найдено"
 
     await message.answer(
-        "<b>🎮 Игровой статус</b>\n\n"
-        f"🎯 <b>Игра:</b> <code>{detected}</code>\n"
-        f"🧩 <b>Процессы:</b> <code>{active}</code>\n"
-        f"🔥 <b>CPU:</b> {system.cpu_percent}%\n"
-        f"🧠 <b>RAM:</b> {system.ram_percent}%\n"
-        f"🧷 <b>Свободно:</b> {system.free_ram_gb} ГБ"
+        "<b>🎮 Игры</b>\n\n"
+        f"🕹 <b>Текущая игра:</b> {escape(detected)}\n"
+        f"🧩 <b>Активно:</b> {escape(active)}\n\n"
+        f"🔥 <b>CPU:</b> {system['cpu_percent']:.1f}%\n"
+        f"🧠 <b>RAM:</b> {system['memory_percent']:.1f}%\n"
+        f"💿 <b>Disk:</b> {system['disk_percent']:.1f}%"
     )
 
 
@@ -48,10 +49,23 @@ async def cmd_cs2(message: Message, config: AppConfig) -> None:
         return
 
     try:
-        subprocess.Popen(["cmd", "/c", "start", "", "steam://rungameid/730"], shell=False)
-        await message.answer("<b>✅ CS2 запускается</b>\n\nОткрываю игру через Steam.")
-    except Exception as e:
-        await message.answer(f"<b>❌ Не удалось запустить CS2</b>\n\n{e}")
+        result = subprocess.run(
+            ["cmd", "/c", "start", "steam://rungameid/730"],
+            capture_output=True,
+            text=True,
+            check=False,
+            shell=False,
+        )
+
+        if result.returncode == 0:
+            await message.answer("<b>🎯 CS2</b>\n\nЗапуск отправлен в Steam.")
+            return
+
+        await message.answer("<b>🎯 CS2</b>\n\nНе удалось запустить игру.")
+    except Exception as exc:
+        await message.answer(
+            f"<b>🎯 CS2</b>\n\n❌ Ошибка запуска: {escape(str(exc))}"
+        )
 
 
 @router.message(Command("close"))
@@ -62,8 +76,8 @@ async def cmd_close(message: Message, config: AppConfig) -> None:
     parts = (message.text or "").split(maxsplit=1)
     if len(parts) < 2:
         await message.answer(
-            "<b>⚠️ Не указано приложение</b>\n\n"
-            "Пример: <code>/close steam</code>"
+            "<b>❌ Закрытие приложения</b>\n\n"
+            "Укажи название после команды."
         )
         return
 
@@ -72,8 +86,9 @@ async def cmd_close(message: Message, config: AppConfig) -> None:
 
     if not exe_name:
         await message.answer(
-            "<b>❌ Недоступное приложение</b>\n\n"
-            "Можно закрыть: <code>steam</code>, <code>discord</code>, "
+            "<b>❌ Закрытие приложения</b>\n\n"
+            "Это приложение нельзя закрыть через бота.\n\n"
+            "Доступно: <code>steam</code>, <code>discord</code>, "
             "<code>chrome</code>, <code>telegram</code>"
         )
         return
@@ -84,54 +99,15 @@ async def cmd_close(message: Message, config: AppConfig) -> None:
             capture_output=True,
             text=True,
             check=False,
+            shell=False,
         )
 
         if result.returncode == 0:
-            await message.answer(f"<b>✅ Приложение закрыто</b>\n\nЗакрыл: <code>{target}</code>")
+            await message.answer(f"✅ <b>{escape(target)}</b> закрыто.")
             return
 
+        await message.answer(f"⚠️ <b>{escape(target)}</b> сейчас не запущено.")
+    except Exception as exc:
         await message.answer(
-            "<b>⚠️ Не удалось закрыть приложение</b>\n\n"
-            f"Возможно, <code>{target}</code> сейчас не запущен."
+            f"❌ Ошибка при закрытии <b>{escape(target)}</b>: {escape(str(exc))}"
         )
-    except Exception as e:
-        await message.answer(f"<b>❌ Ошибка закрытия</b>\n\n{e}")
-
-
-@router.message(Command("shutdown"))
-async def cmd_shutdown(message: Message, config: AppConfig) -> None:
-    if not await ensure_authorized(message, config):
-        return
-
-    try:
-        subprocess.Popen(["shutdown", "/s", "/t", "10"], shell=False)
-        await message.answer("<b>⏻ Выключение ПК</b>\n\nКомпьютер выключится через 10 секунд.")
-    except Exception as e:
-        await message.answer(f"<b>❌ Ошибка выключения</b>\n\n{e}")
-
-
-@router.message(Command("restart"))
-async def cmd_restart(message: Message, config: AppConfig) -> None:
-    if not await ensure_authorized(message, config):
-        return
-
-    try:
-        subprocess.Popen(["shutdown", "/r", "/t", "10"], shell=False)
-        await message.answer("<b>🔄 Перезагрузка ПК</b>\n\nКомпьютер перезагрузится через 10 секунд.")
-    except Exception as e:
-        await message.answer(f"<b>❌ Ошибка перезагрузки</b>\n\n{e}")
-
-
-@router.message(Command("help"))
-async def cmd_help(message: Message, config: AppConfig) -> None:
-    if not await ensure_authorized(message, config):
-        return
-
-    await message.answer(
-        "<b>📖 Команды</b>\n\n"
-        "🎮 <code>/gaming</code> — игровой статус\n"
-        "🎯 <code>/cs2</code> — запустить CS2\n"
-        "❌ <code>/close steam</code> — закрыть приложение\n"
-        "⏻ <code>/shutdown</code> — выключить ПК\n"
-        "🔄 <code>/restart</code> — перезагрузить ПК"
-    )

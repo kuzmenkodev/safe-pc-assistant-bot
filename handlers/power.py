@@ -29,8 +29,9 @@ async def cmd_power(message: Message, config: AppConfig) -> None:
     )
 
     await message.answer(
-        "<b>⚠️ Подтверждение действия</b>\n\n"
-        "Выключение ПК требует подтверждения.\n"
+        "<b>⚡ Питание</b>\n\n"
+        "Выключение ПК нужно подтвердить.\n\n"
         "Нажми кнопку ниже, чтобы продолжить.",
         reply_markup=confirm_keyboard(key),
+        parse_mode="HTML",
     )

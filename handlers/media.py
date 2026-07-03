@@ -5,6 +5,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from config import AppConfig
+from keyboards.catalogs import media_keyboard
 from security.auth import ensure_authorized
 
 router = Router()
@@ -16,7 +17,6 @@ async def cmd_media(message: Message, config: AppConfig) -> None:
         return
 
     await message.answer(
-        "<b>🎵 Медиа</b>\n\n"
-        "Пока это заготовка для управления музыкой и звуком.\n"
-        "Сюда можно добавить: play/pause, next, previous, volume и mute."
+        "<b>🎵 Медиа</b>\n\nВыбери действие.",
+        reply_markup=media_keyboard(),
     )

@@ -5,6 +5,9 @@ import time
 from dataclasses import dataclass
 
 import psutil
+from ctypes import POINTER, cast
+from comtypes import CLSCTX_ALL
+from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
 
 @dataclass(slots=True)
@@ -22,6 +25,12 @@ class ProcessEntry:
     memory_mb: float
 
 
+def _get_volume_controller():
+    devices = AudioUtilities.GetSpeakers()
+    interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
+    return cast(interface, POINTER(IAudioEndpointVolume))
+
+
 def get_health_status() -> HealthStatus:
     cpu = psutil.cpu_percent(interval=0.5)
     memory = psutil.virtual_memory().percent
@@ -33,8 +42,18 @@ def get_health_status() -> HealthStatus:
     )
 
 
+def get_system_snapshot() -> dict[str, float]:
+    health = get_health_status()
+    return {
+        "cpu_percent": health.cpu_percent,
+        "memory_percent": health.memory_percent,
+        "disk_percent": health.disk_percent,
+    }
+
+
 def get_heavy_processes(limit: int = 5) -> list[ProcessEntry]:
     processes = list(psutil.process_iter(["pid", "name"]))
+
     for proc in processes:
         try:
             proc.cpu_percent(interval=None)
@@ -77,3 +96,36 @@ def ping_host(host: str = "8.8.8.8") -> tuple[bool, str]:
         return False, f"Ping failed: {host}"
     except Exception as exc:
         return False, f"Ping error: {exc}"
+
+
+def set_volume(level: int) -> tuple[bool, str]:
+    try:
+        level = max(0, min(100, int(level)))
+        volume = _get_volume_controller()
+        volume.SetMute(0, None)
+        volume.SetMasterVolumeLevelScalar(level / 100, None)
+        return True, f"Volume set to {level}%."
+    except Exception as exc:
+        return False, f"Volume error: {exc}"
+
+
+def mute_volume() -> tuple[bool, str]:
+    try:
+        volume = _get_volume_controller()
+        volume.SetMute(1, None)
+        return True, "Volume muted."
+    except Exception as exc:
+        return False, f"Mute error: {exc}"
+
+
+def top_processes(limit: int = 5) -> list[dict[str, float | int | str]]:
+    items = get_heavy_processes(limit=limit)
+    return [
+        {
+            "pid": item.pid,
+            "name": item.name,
+            "cpu_percent": item.cpu_percent,
+            "memory_mb": item.memory_mb,
+        }
+        for item in items
+    ]

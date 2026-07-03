@@ -6,5 +6,6 @@ urls:
     - "open.spotify.com"
     - "anilist.co"
     - "myanimelist.net"
+
   allowed_exact_urls:
     - "https://open.spotify.com/"
