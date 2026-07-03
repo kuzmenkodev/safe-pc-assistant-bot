@@ -1,0 +1,9 @@
+scripts:
+  update_project:
+    display_name: 'Update Project'
+    path: 'C:/Users/USERNAME/Scripts/update_project.bat'
+    type: 'bat'
+  backup_logs:
+    display_name: 'Backup Logs'
+    path: 'C:/Users/USERNAME/Scripts/backup_logs.ps1'
+    type: 'ps1'

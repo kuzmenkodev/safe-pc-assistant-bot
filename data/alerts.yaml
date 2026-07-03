@@ -1,0 +1,11 @@
+alerts:
+  cpu_percent_threshold: 85
+  cpu_duration_minutes: 5
+  ram_percent_threshold: 90
+  free_ram_gb_threshold: 3
+  disk_percent_threshold: 90
+  ping_ms_threshold: 120
+  game_session_hours_threshold: 6
+  internet_loss_enabled: true
+  notify_on_bot_restart: true
+  notify_on_scenario_failure: true

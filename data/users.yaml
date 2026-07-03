@@ -1,0 +1,5 @@
+users:
+  authorized_user_ids:
+    - 123456789
+  authorized_chat_ids:
+    - 123456789

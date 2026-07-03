@@ -1,0 +1,16 @@
+folders:
+  allowed_roots:
+    - "C:/Users/USERNAME/Downloads/BotInbox"
+    - "C:/Users/USERNAME/Desktop/Shared"
+    - "D:/Media/Allowed"
+
+limits:
+  max_file_size_mb: 50
+  allowed_extensions:
+    - ".txt"
+    - ".log"
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".zip"
+    - ".pdf"

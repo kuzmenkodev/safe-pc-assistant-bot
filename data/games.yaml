@@ -1,0 +1,35 @@
+games:
+  cs2:
+    display_name: "CS2"
+    process_names:
+      - "cs2.exe"
+  valorant:
+    display_name: "Valorant"
+    process_names:
+      - "VALORANT-Win64-Shipping.exe"
+
+launchers:
+  steam:
+    display_name: "Steam"
+    process_names:
+      - "steam.exe"
+  discord:
+    display_name: "Discord"
+    process_names:
+      - "discord.exe"
+  riot_client:
+    display_name: "Riot Client"
+    process_names:
+      - "RiotClientServices.exe"
+  obs:
+    display_name: "OBS"
+    process_names:
+      - "obs64.exe"
+  spotify:
+    display_name: "Spotify"
+    process_names:
+      - "spotify.exe"
+  browser:
+    display_name: "Browser"
+    process_names:
+      - "chrome.exe"

@@ -1,0 +1,44 @@
+scenarios:
+  gaming:
+    description: "Проверить RAM и ping, затем открыть Steam и Discord"
+    require_confirmation: false
+    steps:
+      - type: "health_check"
+      - type: "ping_check"
+      - type: "open_app"
+        app: "steam"
+      - type: "open_app"
+        app: "discord"
+
+  stream:
+    description: "Открыть OBS, Discord и браузер"
+    require_confirmation: false
+    steps:
+      - type: "open_app"
+        app: "obs"
+      - type: "open_app"
+        app: "discord"
+      - type: "open_app"
+        app: "browser"
+
+  night:
+    description: "Уменьшить громкость и открыть Spotify"
+    require_confirmation: false
+    steps:
+      - type: "set_volume"
+        value: 25
+      - type: "open_app"
+        app: "spotify"
+
+  work:
+    description: "Открыть рабочие приложения и при необходимости закрыть игровые лаунчеры"
+    require_confirmation: true
+    steps:
+      - type: "open_app"
+        app: "browser"
+
+  afk:
+    description: "Показать тяжёлые приложения"
+    require_confirmation: true
+    steps:
+      - type: "show_heavy_apps"

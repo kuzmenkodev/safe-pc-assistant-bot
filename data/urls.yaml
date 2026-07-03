@@ -1,0 +1,10 @@
+urls:
+  allowed_domains:
+    - "youtube.com"
+    - "www.youtube.com"
+    - "spotify.com"
+    - "open.spotify.com"
+    - "anilist.co"
+    - "myanimelist.net"
+  allowed_exact_urls:
+    - "https://open.spotify.com/"

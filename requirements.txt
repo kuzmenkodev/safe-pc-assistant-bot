@@ -1,0 +1,8 @@
+aiogram==3.22.0
+python-dotenv==1.0.1
+psutil==6.1.0
+PyYAML==6.0.2
+requests==2.32.3
+GPUtil==1.4.0
+py-cpuinfo==9.0.0
+speedtest-cli==2.1.3
